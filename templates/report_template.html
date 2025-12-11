@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastering {{ topic }}</title>
+    <!-- MathJax for LaTeX rendering -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f3f4f6;
+            --text-color: #1f2937;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 1rem;
+            text-align: center;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .stats {
+            background: #e0f2fe;
+            color: #0c4a6e;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-top: 1rem;
+            border: 1px solid #bae6fd;
+        }
+
+        section {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            margin-top: 1.5rem;
+        }
+
+        code {
+            background-color: #f1f5f9;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e11d48;
+        }
+
+        pre {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        ul,
+        ol {
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #e5e7eb;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>{{ topic }}</h1>
+            <div class="subtitle">Complete Study Guide & Interview Prep</div>
+            {% if token_usage %}
+            <div class="stats">
+                <strong>Token Usage:</strong> Input: {{ "{:,}".format(token_usage.prompt_tokens) }} | Output: {{
+                "{:,}".format(token_usage.candidates_tokens) }} | Total: {{ "{:,}".format(token_usage.total_tokens)
+                }}<br>
+                <strong>Estimated Cost:</strong> ${{ "%.4f"|format(token_usage.total_cost) }}
+            </div>
+            {% endif %}
+        </header>
+
+        <section id="study-plan">
+            <h2>Detailed Study Plan</h2>
+            <div class="content">
+                {{ study_plan | safe }}
+            </div>
+        </section>
+
+        <section id="study-material">
+            <h2>Comprehensive Study Material</h2>
+            <div class="content">
+                {{ study_material | safe }}
+            </div>
+        </section>
+
+        <section id="interview-qa">
+            <h2>Interview Preparation</h2>
+            <div class="content">
+                {{ interview_qa | safe }}
+            </div>
+        </section>
+    </div>
+    <footer>
+        Generated by Multi-Agent Study System with Gemini
+    </footer>
+</body>
+
+</html>
