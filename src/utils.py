@@ -34,20 +34,24 @@ def convert_markdown_to_html(text):
         # Clean up the code
         code = code.strip('\n\r')
         
-        # Escape HTML entities in code
-        code = code.replace('&', '&amp;')
-        code = code.replace('<', '&lt;')
-        code = code.replace('>', '&gt;')
-        code = code.replace('"', '&quot;')
-        
         # Create placeholder with triple pipes (won't be processed by markdown)
         placeholder = f'|||CODEBLOCK|||{len(code_blocks)}|||'
         
-        # Store the formatted code block
-        if lang:
-            code_blocks.append(f'<pre><code class="language-{lang}">{code}</code></pre>')
+        # Handle Mermaid diagrams specially - wrap in div.mermaid for rendering
+        if lang.lower() == 'mermaid':
+            code_blocks.append(f'<div class="mermaid">\n{code}\n</div>')
         else:
-            code_blocks.append(f'<pre><code>{code}</code></pre>')
+            # Escape HTML entities in code (but not for mermaid)
+            code = code.replace('&', '&amp;')
+            code = code.replace('<', '&lt;')
+            code = code.replace('>', '&gt;')
+            code = code.replace('"', '&quot;')
+            
+            # Store the formatted code block
+            if lang:
+                code_blocks.append(f'<pre><code class="language-{lang}">{code}</code></pre>')
+            else:
+                code_blocks.append(f'<pre><code>{code}</code></pre>')
         
         return placeholder
     
@@ -104,8 +108,9 @@ def convert_markdown_to_html(text):
     # Remove empty <p></p> tags
     html = re.sub(r'<p>\s*</p>', '', html)
     
-    # Fix double line breaks that might appear
-    html = re.sub(r'(<br\s*/?>\s*){3,}', '<br /><br />', html)
+    # Fix invalid <p><div> nesting (p should not contain block elements like div)
+    html = re.sub(r'<p>\s*(<div[^>]*>)', r'\1', html)
+    html = re.sub(r'(</div>)\s*</p>', r'\1', html)
     
     return html
 

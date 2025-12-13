@@ -25,6 +25,7 @@ class Agent:
             }
 
         import time
+        import sys
         max_retries = 3
         base_delay = 15  # Increased to 15 seconds for rate limit handling
 
@@ -34,46 +35,59 @@ class Agent:
                     tools=self.tools if use_tools else None
                 )
                 
-                response = self.client.models.generate_content(
+                print(f"  Making API call (attempt {attempt + 1}/{max_retries})...")
+                
+                # Use streaming to prevent timeout on large responses
+                response_stream = self.client.models.generate_content_stream(
                     model=self.model_name,
                     contents=prompt,
                     config=config
                 )
                 
-                # Extract content
+                # Collect streamed content
                 text_content = ""
-                if response.text:
-                    text_content = response.text
-                
-                # Extract usage metadata
                 usage = {
                     "prompt_tokens": 0,
                     "candidates_tokens": 0,
                     "total_tokens": 0
                 }
-                if response.usage_metadata:
-                    usage["prompt_tokens"] = response.usage_metadata.prompt_token_count
-                    usage["candidates_tokens"] = response.usage_metadata.candidates_token_count
-                    usage["total_tokens"] = response.usage_metadata.total_token_count
-                
-                # Check for grounding metadata (indicates search was used)
                 grounding_used = False
-                if hasattr(response, 'candidates') and response.candidates:
-                    candidate = response.candidates[0]
-                    if hasattr(candidate, 'grounding_metadata') and candidate.grounding_metadata:
-                        grounding_used = True
-                        gm = candidate.grounding_metadata
-                        print(f"  ✓ Grounding detected!")
-                        if hasattr(gm, 'search_entry_point') and gm.search_entry_point:
-                            print(f"    Search Entry Point: {gm.search_entry_point.rendered_content[:100] if gm.search_entry_point.rendered_content else 'N/A'}...")
-                        if hasattr(gm, 'grounding_chunks') and gm.grounding_chunks:
-                            print(f"    Grounding Chunks: {len(gm.grounding_chunks)} sources found")
-                            for i, chunk in enumerate(gm.grounding_chunks[:3]):  # Show first 3
-                                if hasattr(chunk, 'web') and chunk.web:
-                                    print(f"      [{i+1}] {chunk.web.title}: {chunk.web.uri}")
+                chunk_count = 0
+                
+                print("  Receiving response", end="")
+                sys.stdout.flush()
+                
+                for chunk in response_stream:
+                    chunk_count += 1
+                    # Show progress every 10 chunks
+                    if chunk_count % 10 == 0:
+                        print(".", end="")
+                        sys.stdout.flush()
+                    
+                    # Collect text from each chunk
+                    if chunk.text:
+                        text_content += chunk.text
+                    
+                    # Get usage from the final chunk (it accumulates)
+                    if chunk.usage_metadata:
+                        usage["prompt_tokens"] = chunk.usage_metadata.prompt_token_count or 0
+                        usage["candidates_tokens"] = chunk.usage_metadata.candidates_token_count or 0
+                        usage["total_tokens"] = chunk.usage_metadata.total_token_count or 0
+                    
+                    # Check for grounding metadata
+                    if hasattr(chunk, 'candidates') and chunk.candidates:
+                        candidate = chunk.candidates[0]
+                        if hasattr(candidate, 'grounding_metadata') and candidate.grounding_metadata:
+                            grounding_used = True
+                
+                print(f" Done! ({chunk_count} chunks received)")
+                
+                # Log grounding info after streaming completes
+                if grounding_used:
+                    print(f"  Grounding was used in this response")
                 
                 if use_tools and not grounding_used:
-                    print("  ⚠ Warning: Grounding was requested but no grounding metadata returned.")
+                    print("  Warning: Grounding was requested but no grounding metadata returned.")
                 
                 return {
                     "content": text_content if text_content else "Error: No text content generated.",
@@ -82,6 +96,7 @@ class Agent:
                 }
 
             except Exception as e:
+                print("")  # New line after progress dots
                 if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                     if attempt < max_retries - 1:
                         sleep_time = base_delay * (2 ** attempt)
@@ -95,7 +110,7 @@ class Agent:
                     "usage": {"total_tokens": 0}
                 }
         return {
-            "content": "<p class='error'>Error: specific max retries exceeded.</p>",
+            "content": "<p class='error'>Error: max retries exceeded.</p>",
             "usage": {"total_tokens": 0}
         }
 
@@ -127,40 +142,112 @@ class StudyMaterialAgent(Agent):
         print(f"Generating comprehensive study material for: {topic}...")
         plan_content = plan_data['content']
         prompt = f"""
-        You are writing a complete, professional textbook chapter on '{topic}'.
-        
-        Your task is to create an **exhaustive, A-to-Z study guide** that covers EVERY topic mentioned in the study plan below. This must be a ONE-STOP resource - the reader should NOT need any other material to fully understand and master this topic.
-        
-        Study Plan to Cover:
-        {plan_content}
-        
-        CRITICAL REQUIREMENTS:
-        
-        1. **COVER EVERY SINGLE TOPIC** from the study plan above. Do not skip ANY topic or sub-topic. Each module, week, and sub-topic must have its own detailed section.
-        
-        2. **DEPTH OVER BREVITY**: For EACH concept:
-           - Define it clearly (what it is)
-           - Explain WHY it matters
-           - Explain HOW it works (with step-by-step breakdowns)
-           - Provide 2-3 practical examples
-           - Include code snippets with line-by-line explanations (if technical)
-           - List common mistakes/pitfalls
-           - Provide practice exercises or thought experiments
-        
-        3. **BEGINNER TO ADVANCED**: Start each topic from first principles. Assume the reader knows nothing. Build up to advanced concepts progressively.
-        
-        4. **REAL-WORLD EXAMPLES**: Include industry use cases, practical applications, and scenarios for every major concept.
-        
-        5. **CODE EXAMPLES** (if technical): Provide complete, runnable code snippets. Add comments explaining each line. Show input/output examples.
-        
-        6. **NO SHORTCUTS**: Do NOT say "refer to documentation" or "as discussed earlier". Explain everything fully each time.
-        
-        7. **STRUCTURED FORMAT**: Use clear headings (H2 for modules, H3 for topics, H4 for sub-topics). Use bullet points, numbered lists, and tables where appropriate.
-        
-        This should be 10,000+ words minimum. Quality and completeness are paramount.
-        
-        Provide the output in Markdown format.
-        """
+You are writing the definitive study guide on '{topic}' for someone who needs to:
+1. DEEPLY understand and REMEMBER this for years (not just pass an exam)
+2. Be able to EXPLAIN any concept clearly if someone asks them in an interview or discussion
+
+Study Plan to Cover:
+{plan_content}
+
+---
+FOR EVERY CONCEPT IN THE PLAN, USE THIS EXACT STRUCTURE:
+---
+
+## [Concept Name]
+
+### The One-Liner (Memorize This)
+- A single, memorable sentence that captures the essence
+- This is what you'd say if someone wakes you at 3 AM and asks "What is X?"
+
+### Mental Model (How to Think About It)
+- A vivid analogy or metaphor connecting to everyday life
+- Example: "Think of [X] as a [familiar thing] because..."
+- This creates a 'hook' in your brain for long-term memory
+
+### Visual Memory Aid
+Create a simple Mermaid diagram. CRITICAL MERMAID SYNTAX RULES:
+1. Use ONLY short, simple node labels (2-4 words max)
+2. NEVER use brackets [], parentheses (), or special characters inside node labels
+3. NEVER use quotes or apostrophes in node labels
+4. Use underscores for multi-word labels: My_Label not "My Label"
+5. Keep diagrams simple: maximum 5-6 nodes
+
+Example of CORRECT syntax:
+```mermaid
+flowchart LR
+    A[Input_Data] --> B[Process_Step]
+    B --> C[Final_Output]
+```
+
+Example of WRONG syntax (DO NOT DO THIS):
+```mermaid
+flowchart LR
+    A[Input (raw)] --> B[Process [step 1]]
+```
+
+Also include:
+- **Sketch Note**: Describe a simple hand-drawn diagram you could recreate on a whiteboard
+- **Icon/Symbol**: Suggest an emoji to associate with this concept
+
+### Full Explanation (For Deep Understanding)
+- Start from ZERO - assume no prior knowledge
+- Explain the "WHY" before the "HOW" - why was this created? What problem does it solve?
+- Break down the mechanism step-by-step (First... Then... Finally...)
+- Use simple language, then introduce technical terms
+- Include real-world examples (e.g., "Netflix uses this for...", "This is how Google handles...")
+
+### Code Example with Narration (if technical)
+- Show working code with extensive comments
+- After the code, explain it in plain English like you're teaching someone
+- Show: Input -> What Happens -> Output
+
+### Interview Q&A Practice
+Prepare answers for these common questions:
+
+**Q1: "What is [concept] in simple terms?"**
+[Provide a 2-3 sentence answer a non-technical person would understand]
+
+**Q2: "How does it actually work under the hood?"**
+[Provide a technical but clear explanation]
+
+**Q3: "When should I use this vs [alternative]?"**
+[Provide comparison and decision criteria]
+
+**Q4: "What is a common mistake people make with this?"**
+[Provide 1-2 gotchas with explanations]
+
+### Common Misconceptions
+- "Many people think X, but actually Y because..."
+- "Do not confuse this with Z - the key difference is..."
+- Things that SOUND right but are WRONG
+
+### Memory Anchors (Lock It In)
+- **Acronym/Mnemonic** (if applicable): Create a memorable phrase
+- **Key Formula/Pattern**: The core structure to remember
+- **Visual**: Describe a simple diagram you could draw from memory
+- **Connection**: "This relates to [other concept] because..."
+
+### Self-Test Checklist
+Before moving on, you should be able to:
+- [ ] Explain this to a 10-year-old in 30 seconds
+- [ ] Explain this to a senior engineer in 2 minutes
+- [ ] Draw the key diagram from memory
+- [ ] Write a basic code example without looking
+- [ ] List 2 real-world use cases
+
+---
+CRITICAL REQUIREMENTS:
+---
+
+1. COVER EVERY SINGLE TOPIC from the study plan above. Do not skip ANY topic.
+2. TEACHING TONE: Write as if explaining to a friend who is smart but new to this.
+3. EVERY MAJOR CONCEPT MUST HAVE A MERMAID DIAGRAM - keep diagrams simple (max 6-8 nodes).
+4. PROGRESSIVE COMPLEXITY: Start simple, go deep.
+5. NO HAND-WAVING: Never say "it is complicated" or "refer to docs". Explain everything fully.
+6. REAL-WORLD GROUNDING: For every concept, mention where it is used in industry.
+
+Provide the output in Markdown format.
+"""
         return self.generate(prompt)
 
 class InterviewPrepAgent(Agent):
