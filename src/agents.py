@@ -123,18 +123,39 @@ class StudyPlanAgent(Agent):
     def create_plan(self, topic):
         print(f"Generating study plan for: {topic} using Deep Research...")
         prompt = f"""
-        Act as a senior curriculum developer and researcher.
-        Use Google Search to perform deep research on the topic: '{topic}' to identify the latest trends, core concepts, and best learning paths.
-        Create a detailed, step-by-step study plan for mastering this topic.
-        
-        The plan should:
-        1. Be structured logically (e.g., Week 1, Week 2, or Module 1, Module 2).
-        2. Cover prerequisites, core concepts, and advanced topics.
-        3. Include specific sub-topics to focus on.
-        4. Be practical and action-oriented.
-        
-        Provide the output in Markdown format.
-        """
+Act as a senior curriculum developer and researcher.
+Use Google Search to perform deep research on the topic: '{topic}' to identify the latest trends, core concepts, and best learning paths.
+
+Create a detailed study plan with CLEARLY NUMBERED TOPICS that can be expanded into full lessons.
+
+## Required Structure:
+
+### Prerequisites (What to know first)
+1. [Topic 1]: Brief description (1-2 sentences)
+2. [Topic 2]: Brief description (1-2 sentences)
+
+### Core Concepts (Week 1-2)
+3. [Topic 3]: Brief description
+4. [Topic 4]: Brief description
+... (continue numbering)
+
+### Intermediate Skills (Week 3-4)
+5. [Topic 5]: Brief description
+...
+
+### Advanced Topics (Week 5-6)
+6. [Topic 6]: Brief description
+...
+
+## Requirements:
+- Number EVERY topic sequentially (1, 2, 3...)
+- Each topic should be a SINGLE, focused concept
+- Keep descriptions to 1-2 sentences
+- Include 15-25 total topics for comprehensive coverage
+- Order from simplest to most complex
+
+Provide the output in Markdown format.
+"""
         return self.generate(prompt, use_tools=True)
 
 class StudyMaterialAgent(Agent):
@@ -227,13 +248,23 @@ Prepare answers for these common questions:
 - **Visual**: Describe a simple diagram you could draw from memory
 - **Connection**: "This relates to [other concept] because..."
 
-### Self-Test Checklist
-Before moving on, you should be able to:
-- [ ] Explain this to a 10-year-old in 30 seconds
-- [ ] Explain this to a senior engineer in 2 minutes
-- [ ] Draw the key diagram from memory
-- [ ] Write a basic code example without looking
-- [ ] List 2 real-world use cases
+### Self-Test Checklist (With Answers)
+Before moving on, verify you can do each of these. Sample answers provided:
+
+- [x] **Explain to a 10-year-old (30 sec)**: 
+  [Provide a simple 2-3 sentence explanation using everyday analogies, no jargon]
+
+- [x] **Explain to a senior engineer (2 min)**: 
+  [Provide a technical explanation covering: how it works internally, time/space complexity, trade-offs, when to use vs alternatives]
+
+- [x] **Draw the key diagram from memory**: 
+  [Describe exactly what to draw - the nodes, arrows, and labels. Reference the Mermaid diagram above]
+
+- [x] **Write a basic code example without looking**: 
+  [Provide a minimal, memorable code snippet (5-10 lines) that demonstrates the core concept]
+
+- [x] **List 2 real-world use cases**: 
+  [Name 2 specific companies/products and how they use this concept]
 
 ---
 CRITICAL REQUIREMENTS:
