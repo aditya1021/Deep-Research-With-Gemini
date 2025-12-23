@@ -80,11 +80,20 @@ def convert_markdown_to_html(text):
     inline_latex_pattern = r'(?<!\$)\$(?!\$)([^$\n]+?)(?<!\$)\$(?!\$)'
     processed_text = re.sub(inline_latex_pattern, extract_latex, processed_text)
     
-    # Configure markdown - removed 'extra' extension which causes underscore issues
+    # Pre-process task list checkboxes (GitHub Flavored Markdown style)
+    # Convert - [x] to checked checkbox and - [ ] to unchecked
+    processed_text = re.sub(r'^(\s*)- \[x\] (.+)$', r'\1<li class="task-item checked">✅ \2</li>', processed_text, flags=re.MULTILINE)
+    processed_text = re.sub(r'^(\s*)- \[ \] (.+)$', r'\1<li class="task-item">☐ \2</li>', processed_text, flags=re.MULTILINE)
+    
+    # Fix asterisk bullet points - ensure they have proper spacing for markdown
+    processed_text = re.sub(r'^\* ', r'- ', processed_text, flags=re.MULTILINE)
+    
+    # Configure markdown with proper extensions for list handling
     md = markdown.Markdown(extensions=[
         'tables',
         'sane_lists',
         'smarty',
+        'nl2br',  # Convert newlines to <br> for better formatting
     ])
     
     # Convert markdown to HTML

@@ -186,29 +186,43 @@ FOR EVERY CONCEPT IN THE PLAN, USE THIS EXACT STRUCTURE:
 - This creates a 'hook' in your brain for long-term memory
 
 ### Visual Memory Aid
-Create a simple Mermaid diagram. CRITICAL MERMAID SYNTAX RULES:
-1. Use ONLY short, simple node labels (2-4 words max)
-2. NEVER use brackets [], parentheses (), or special characters inside node labels
-3. NEVER use quotes or apostrophes in node labels
-4. Use underscores for multi-word labels: My_Label not "My Label"
-5. Keep diagrams simple: maximum 5-6 nodes
+Create a simple Mermaid diagram. CRITICAL MERMAID SYNTAX RULES - FOLLOW EXACTLY:
 
-Example of CORRECT syntax:
+**ALLOWED:**
+- Simple alphanumeric text: A, B, C, Data, Process, Output
+- Underscores: User_Input, Final_Result
+- Simple arrows: -->, ---, -.->, -.->
+
+**FORBIDDEN (will break the diagram):**
+- NO parentheses: (example) ❌
+- NO square brackets inside labels: [step 1] ❌
+- NO curly braces: {{data}} ❌
+- NO quotes: "text" or 'text' ❌
+- NO colons: key: value ❌
+- NO semicolons: A; B ❌
+- NO pipes: A | B ❌
+- NO ampersands: A & B ❌
+- NO percentages: 50% ❌
+- NO special chars: @, #, $, *, etc. ❌
+
+**KEEP IT SIMPLE:**
+- Maximum 4-5 nodes
+- Use single words or underscored_words only
+- Use flowchart LR or TD only
+
+CORRECT EXAMPLE:
 ```mermaid
 flowchart LR
-    A[Input_Data] --> B[Process_Step]
-    B --> C[Final_Output]
+    A[Input] --> B[Process]
+    B --> C[Output]
 ```
 
-Example of WRONG syntax (DO NOT DO THIS):
+WRONG EXAMPLE (DO NOT DO THIS):
 ```mermaid
 flowchart LR
-    A[Input (raw)] --> B[Process [step 1]]
+    A[User Input (raw)] --> B[Process: Step 1]
 ```
 
-Also include:
-- **Sketch Note**: Describe a simple hand-drawn diagram you could recreate on a whiteboard
-- **Icon/Symbol**: Suggest an emoji to associate with this concept
 
 ### Full Explanation (For Deep Understanding)
 - Start from ZERO - assume no prior knowledge

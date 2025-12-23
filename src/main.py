@@ -44,12 +44,12 @@ def main():
                 total_tokens["total_tokens"] += usage.get("total_tokens", 0)
 
         # Step 1: Research & Plan
-        print("\n--- Phase 1: Deep Research & Planning ---")
+        print("\n--- Phase 1: Deep Research & Planning ---", flush=True)
         study_plan_data = plan_agent.create_plan(topic)
         update_tokens(study_plan_data.get("usage"))
         
         # Step 2: Content Generation
-        print("\n--- Phase 2: Generating Comprehensive Study Material ---")
+        print("\n--- Phase 2: Generating Comprehensive Study Material ---", flush=True)
         study_material_data = material_agent.create_material(topic, study_plan_data)
         update_tokens(study_material_data.get("usage"))
         
@@ -57,7 +57,7 @@ def main():
         time.sleep(5)
         
         # Step 3: Interview Prep
-        print("\n--- Phase 3: Preparing Interview Questions ---")
+        print("\n--- Phase 3: Preparing Interview Questions ---", flush=True)
         interview_qa_data = interview_agent.create_qa(topic, study_plan_data)
         update_tokens(interview_qa_data.get("usage"))
 
@@ -72,7 +72,7 @@ def main():
         total_tokens["total_cost"] = total_cost
 
         # Step 4: Final Report
-        print("\n--- Phase 4: Compiling Final Report ---")
+        print("\n--- Phase 4: Compiling Final Report ---", flush=True)
         output_path = generate_html_report(topic, study_plan_data, study_material_data, interview_qa_data, total_tokens)
         
         print(f"\nSuccess! Your study guide is ready at: {output_path}")

@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
     <!-- Mermaid.js for diagram rendering -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-    <script>mermaid.initialize({startOnLoad:true, theme:'default'});</script>
+    <script>mermaid.initialize({ startOnLoad: true, theme: 'default' });</script>
     <style>
         :root {
             --primary-color: #2563eb;
@@ -126,6 +126,21 @@
 
         li {
             margin-bottom: 0.5rem;
+        }
+
+        /* Task list checkbox styling */
+        .task-item {
+            list-style: none;
+            margin-left: -1rem;
+            padding: 0.5rem;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .task-item.checked {
+            background: #ecfdf5;
+            border-left: 3px solid #10b981;
         }
 
         table {
