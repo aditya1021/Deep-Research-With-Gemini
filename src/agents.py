@@ -162,19 +162,46 @@ class StudyMaterialAgent(Agent):
     def create_material(self, topic, plan_data):
         print(f"Generating comprehensive study material for: {topic}...")
         plan_content = plan_data['content']
-        prompt = f"""
-You are writing the definitive study guide on '{topic}' for someone who needs to:
-1. DEEPLY understand and REMEMBER this for years (not just pass an exam)
-2. Be able to EXPLAIN any concept clearly if someone asks them in an interview or discussion
+        
+        # 1. Parse the plan to extract topics
+        import re
+        # Find all lines starting with a number, a dot, and a space (e.g., "1. ")
+        # We capture the full line as the topic description
+        topics = []
+        for line in plan_content.split('\n'):
+            line = line.strip()
+            if re.match(r'^\d+\.', line):
+                topics.append(line)
+        
+        print(f"  Found {len(topics)} topics in the plan.")
+        
+        full_study_material = ""
+        total_usage = {
+            "prompt_tokens": 0,
+            "candidates_tokens": 0,
+            "total_tokens": 0
+        }
+        
+        # 2. Generate material for EACH topic individually
+        for i, topic_line in enumerate(topics):
+            sub_topic = topic_line.split(':', 1)[0] # Just the "1. [Topic Name]" part for logging
+            print(f"  Processing topic {i+1}/{len(topics)}: {sub_topic}...")
+            
+            prompt = f"""
+You are writing a section of a definitive study guide on '{topic}'.
 
-Study Plan to Cover:
+Context (The full plan):
 {plan_content}
 
+Current Focus:
+Write the study material ONLY for this specific topic from the plan:
+"{topic_line}"
+
 ---
-FOR EVERY CONCEPT IN THE PLAN, USE THIS EXACT STRUCTURE:
+USE THIS STRUCTURE FOR THIS TOPIC:
 ---
 
-## [Concept Name]
+## {topic_line}
 
 ### The One-Liner (Memorize This)
 - A single, memorable sentence that captures the essence
@@ -217,13 +244,6 @@ flowchart LR
     B --> C[Output]
 ```
 
-WRONG EXAMPLE (DO NOT DO THIS):
-```mermaid
-flowchart LR
-    A[User Input (raw)] --> B[Process: Step 1]
-```
-
-
 ### Full Explanation (For Deep Understanding)
 - Start from ZERO - assume no prior knowledge
 - Explain the "WHY" before the "HOW" - why was this created? What problem does it solve?
@@ -235,6 +255,7 @@ flowchart LR
 - Show working code with extensive comments
 - After the code, explain it in plain English like you're teaching someone
 - Show: Input -> What Happens -> Output
+- IF NOT TECHNICAL, skip this section.
 
 ### Interview Q&A Practice
 Prepare answers for these common questions:
@@ -282,18 +303,29 @@ Before moving on, verify you can do each of these. Sample answers provided:
 
 ---
 CRITICAL REQUIREMENTS:
----
-
-1. COVER EVERY SINGLE TOPIC from the study plan above. Do not skip ANY topic.
-2. TEACHING TONE: Write as if explaining to a friend who is smart but new to this.
-3. EVERY MAJOR CONCEPT MUST HAVE A MERMAID DIAGRAM - keep diagrams simple (max 6-8 nodes).
-4. PROGRESSIVE COMPLEXITY: Start simple, go deep.
-5. NO HAND-WAVING: Never say "it is complicated" or "refer to docs". Explain everything fully.
-6. REAL-WORLD GROUNDING: For every concept, mention where it is used in industry.
-
-Provide the output in Markdown format.
+1. ONLY write about "{topic_line}"
+2. TEACHING TONE: Explain like a friend.
+3. INCLUDE MERMAID DIAGRAM.
+4. NO HAND-WAVING. Explain fully.
+5. Provide output in Markdown.
 """
-        return self.generate(prompt)
+            result = self.generate(prompt)
+            full_study_material += result['content'] + "\n\n---\n\n"
+            
+            # Aggregate usage
+            if result.get('usage'):
+                total_usage['prompt_tokens'] += result['usage'].get('prompt_tokens', 0)
+                total_usage['candidates_tokens'] += result['usage'].get('candidates_tokens', 0)
+                total_usage['total_tokens'] += result['usage'].get('total_tokens', 0)
+                
+            # Small delay to keep within rate limits
+            import time
+            time.sleep(2)
+
+        return {
+            "content": full_study_material,
+            "usage": total_usage
+        }
 
 class InterviewPrepAgent(Agent):
     def create_qa(self, topic, plan_data):
