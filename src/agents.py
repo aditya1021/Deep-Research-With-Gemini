@@ -130,21 +130,17 @@ Create a detailed study plan with CLEARLY NUMBERED TOPICS that can be expanded i
 
 ## Required Structure:
 
-### Prerequisites (What to know first)
-1. [Topic 1]: Brief description (1-2 sentences)
-2. [Topic 2]: Brief description (1-2 sentences)
-
 ### Core Concepts (Week 1-2)
-3. [Topic 3]: Brief description
-4. [Topic 4]: Brief description
+1. [Topic 1]: Brief description
+2. [Topic 2]: Brief description
 ... (continue numbering)
 
 ### Intermediate Skills (Week 3-4)
-5. [Topic 5]: Brief description
+3. [Topic 3]: Brief description
 ...
 
 ### Advanced Topics (Week 5-6)
-6. [Topic 6]: Brief description
+4. [Topic 4]: Brief description
 ...
 
 ## Requirements:
@@ -198,21 +194,19 @@ Write the study material ONLY for this specific topic from the plan:
 "{topic_line}"
 
 ---
-USE THIS STRUCTURE FOR THIS TOPIC:
+USE THIS STRUCTURE FOR THIS TOPIC, ADOPTING A "SMART BREVITY" STYLE (punchy, scannable, bolding key terms, no fluff, direct):
 ---
 
 ## {topic_line}
 
-### The One-Liner (Memorize This)
-- A single, memorable sentence that captures the essence
-- This is what you'd say if someone wakes you at 3 AM and asks "What is X?"
+### The Big Picture (Explain Like I'm 5)
+- **What it is:** A single, punchy sentence explaining the core concept in plain English.
+- **Why it matters:** Why was this invented? What exact problem does it solve in the real world?
 
-### Mental Model (How to Think About It)
-- A vivid analogy or metaphor connecting to everyday life
-- Example: "Think of [X] as a [familiar thing] because..."
-- This creates a 'hook' in your brain for long-term memory
+### Think of it like...
+- **The Analogy:** A vivid, highly relatable everyday metaphor. (e.g., "Think of [X] as a [familiar thing] because...")
 
-### Visual Memory Aid
+### The Visual
 Create a simple Mermaid diagram. CRITICAL MERMAID SYNTAX RULES - FOLLOW EXACTLY:
 
 **ALLOWED:**
@@ -244,69 +238,40 @@ flowchart LR
     B --> C[Output]
 ```
 
-### Full Explanation (For Deep Understanding)
-- Start from ZERO - assume no prior knowledge
-- Explain the "WHY" before the "HOW" - why was this created? What problem does it solve?
-- Break down the mechanism step-by-step (First... Then... Finally...)
-- Use simple language, then introduce technical terms
-- Include real-world examples (e.g., "Netflix uses this for...", "This is how Google handles...")
+### How it Works (Deep Dive, Step-by-Step)
+Explain the mechanism from ZERO. Assume the reader is a complete beginner. **Use bullet points and bold text for scannability, but DO NOT skip the technical depth.** Teach it thoroughly.
+1. **The Setup (Input):** Define what comes in and any prerequisites.
+2. **The Execution (Process):** Explain exactly what happens under the hood. Define any new terms immediately.
+3. **The Result (Output):** Explain what comes out and why.
+*Example: [Name a real company, e.g., Netflix] uses this to [Action].*
 
-### Code Example with Narration (if technical)
-- Show working code with extensive comments
-- After the code, explain it in plain English like you're teaching someone
-- Show: Input -> What Happens -> Output
-- IF NOT TECHNICAL, skip this section.
+### Show Me The Code / Example (if technical)
+- **The Code:** Provide a clean, minimal snippet (5-15 lines).
+- **Line-by-Line Breakdown:**
+  - `Line X`: Does [Action] so that [Reason].
+  - `Line Y`: Does [Action] so that [Reason].
+*(If not a technical coding concept, provide a concrete real-world scenario/workflow instead)*
 
-### Interview Q&A Practice
-Prepare answers for these common questions:
+### Catch & Correct
+- **The Myth:** What beginners usually get wrong or confuse this with.
+- **The Reality:** The actual truth.
 
-**Q1: "What is [concept] in simple terms?"**
-[Provide a 2-3 sentence answer a non-technical person would understand]
+### The Bottom Line
+- **Rule of thumb:** The absolute core takeaway or formula to remember.
 
-**Q2: "How does it actually work under the hood?"**
-[Provide a technical but clear explanation]
-
-**Q3: "When should I use this vs [alternative]?"**
-[Provide comparison and decision criteria]
-
-**Q4: "What is a common mistake people make with this?"**
-[Provide 1-2 gotchas with explanations]
-
-### Common Misconceptions
-- "Many people think X, but actually Y because..."
-- "Do not confuse this with Z - the key difference is..."
-- Things that SOUND right but are WRONG
-
-### Memory Anchors (Lock It In)
-- **Acronym/Mnemonic** (if applicable): Create a memorable phrase
-- **Key Formula/Pattern**: The core structure to remember
-- **Visual**: Describe a simple diagram you could draw from memory
-- **Connection**: "This relates to [other concept] because..."
-
-### Self-Test Checklist (With Answers)
-Before moving on, verify you can do each of these. Sample answers provided:
-
-- [x] **Explain to a 10-year-old (30 sec)**: 
-  [Provide a simple 2-3 sentence explanation using everyday analogies, no jargon]
-
-- [x] **Explain to a senior engineer (2 min)**: 
-  [Provide a technical explanation covering: how it works internally, time/space complexity, trade-offs, when to use vs alternatives]
-
-- [x] **Draw the key diagram from memory**: 
-  [Describe exactly what to draw - the nodes, arrows, and labels. Reference the Mermaid diagram above]
-
-- [x] **Write a basic code example without looking**: 
-  [Provide a minimal, memorable code snippet (5-10 lines) that demonstrates the core concept]
-
-- [x] **List 2 real-world use cases**: 
-  [Name 2 specific companies/products and how they use this concept]
+### Quick Check
+Verify you can do each of these (Provide brief sample answers):
+- [x] **Explain broadly (30s):** [Simple explanation, no jargon]
+- [x] **Explain deeply (2m):** [Detailed technical explanation]
+- [x] **Code it:** [Describe the exact minimal snippet needed]
+- [x] **Apply it:** [List 2 strict, real-world use cases]
 
 ---
 CRITICAL REQUIREMENTS:
 1. ONLY write about "{topic_line}"
-2. TEACHING TONE: Explain like a friend.
-3. INCLUDE MERMAID DIAGRAM.
-4. NO HAND-WAVING. Explain fully.
+2. INSTRUCTIONAL DEPTH: Explain from ZERO. Assume no prior knowledge. TEACH, don't just summarize. 
+3. TONE: Smart Brevity format. Punchy, scannable, confident. Use bolding for key terms. Avoid massive walls of text, but keep the educational depth high.
+4. INCLUDE MERMAID DIAGRAM.
 5. Provide output in Markdown.
 """
             result = self.generate(prompt)
@@ -329,20 +294,12 @@ CRITICAL REQUIREMENTS:
 
 class InterviewPrepAgent(Agent):
     def create_qa(self, topic, plan_data):
-        print(f"Generating interview Q&A for: {topic}...")
-        plan_content = plan_data['content']
-        prompt = f"""
-        Act as a senior technical interviewer.
-        Based on the topic '{topic}' and the following study plan, create a list of 20 challenging and important interview questions and answers.
-        
-        Study Plan Context:
-        {plan_content}
-        
-        Include:
-        1. Concept-based questions relevant to the plan.
-        2. Scenario/Problem-solving questions.
-        3. "Gotcha" questions or common pitfalls.
-        
-        Provide the output in Markdown format.
-        """
-        return self.generate(prompt)
+        print(f"Skipping interview Q&A for: {topic} as requested...")
+        return {
+            "content": "",
+            "usage": {
+                "prompt_tokens": 0,
+                "candidates_tokens": 0,
+                "total_tokens": 0
+            }
+        }
